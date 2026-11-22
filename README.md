@@ -69,7 +69,7 @@ Everything in this repository was built during the hackathon: the interface and 
 
 ## Team and AI assistance
 
-- Solo project by _[GHADIA ALHARBI]_.
+- Solo project by _[GHAIDA ALHARBI]_.
 - Developed with the help of Claude (Anthropic) as a coding assistant.
 
 ## Files
