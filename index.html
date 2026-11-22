@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Veri – AI Fact Checker</title>
+<style>
+:root{--bg:#f4f8ff;--card:#fff;--ink:#12305a;--mut:#5b6f8f;--blue:#2f7bff;--blue2:#dbe8ff;--line:#d5e2f7;
+--g:#1f9d55;--gbg:#e6f6ec;--o:#e07b00;--obg:#fff1dd;--r:#d63b3b;--rbg:#fde8e8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1a30;--card:#14233f;--ink:#eaf2ff;--mut:#9db3d6;--blue2:#1e3a6b;--line:#27406b;--gbg:#12301f;--obg:#3a2810;--rbg:#3a1717}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;align-items:center;gap:12px}
+header h1{font-size:26px;margin:0;letter-spacing:-.5px}
+header span{color:var(--mut);font-size:14px}
+.hero{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin:18px 0}
+.bubble{font-size:16px}
+.bubble b{color:var(--blue)}
+textarea{width:100%;min-height:150px;border:2px solid var(--line);border-radius:16px;padding:14px;font:inherit;font-size:16px;background:var(--card);color:var(--ink);resize:vertical}
+textarea:focus{outline:3px solid var(--blue2);border-color:var(--blue)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+button{font:inherit;font-size:16px;font-weight:600;border:0;border-radius:14px;padding:14px 20px;cursor:pointer;min-height:48px}
+.main{background:var(--blue);color:#fff;flex:1}
+.main:disabled{opacity:.6}
+.ghost{background:var(--blue2);color:var(--ink)}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px;font-size:13px}
+.pill{padding:4px 10px;border-radius:999px;font-weight:600}
+.p-g{background:var(--gbg);color:var(--g)}.p-o{background:var(--obg);color:var(--o)}.p-r{background:var(--rbg);color:var(--r)}
+.score{display:flex;gap:10px;margin:18px 0 8px}
+.score div{flex:1;text-align:center;border-radius:14px;padding:10px 4px;font-weight:700;font-size:22px}
+.score small{display:block;font-size:12px;font-weight:600}
+.claim{background:var(--card);border:1px solid var(--line);border-left:8px solid;border-radius:14px;padding:12px 14px;margin:10px 0}
+.claim.true{border-left-color:var(--g)}.claim.doubtful{border-left-color:var(--o)}.claim.false{border-left-color:var(--r)}
+.claim .t{font-weight:600}.claim .why{color:var(--mut);font-size:14px;margin-top:4px}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;margin-bottom:6px}
+.err{background:var(--rbg);color:var(--r);padding:12px;border-radius:12px;margin-top:12px}
+.note{color:var(--mut);font-size:13px;margin-top:22px;border-top:1px solid var(--line);padding-top:12px}
+.bob{animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){.bob{animation:none}}
+.mk{border-radius:6px;padding:1px 4px}.m-true{background:var(--gbg);box-shadow:inset 0 -3px var(--g)}.m-doubtful{background:var(--obg);box-shadow:inset 0 -3px var(--o)}.m-false{background:var(--rbg);box-shadow:inset 0 -3px var(--r)}
+.ann{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;white-space:pre-wrap;line-height:1.9}
+.bar{height:14px;border-radius:99px;background:var(--rbg);overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:var(--g);border-radius:99px}
+.ver{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;color:var(--blue);text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 0}
+.bd{display:inline-block;font-size:12px;font-weight:600;border-radius:8px;padding:2px 8px;margin:0 6px 6px 0;background:var(--blue2);color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <svg id="logo" width="48" height="48" viewBox="0 0 100 100" aria-hidden="true"></svg>
+ <div><h1>Veri</h1><span>Your friendly fact-checking robot</span></div>
+</header>
+
+<section class="hero">
+ <svg id="mascot" width="84" height="84" viewBox="0 0 100 100" role="img" aria-label="Veri the robot"></svg>
+ <div class="bubble" id="say">Hi, I’m <b>Veri</b>! Paste any text, even an AI answer, and I’ll check every claim for you.</div>
+</section>
+
+<label for="in" style="font-weight:600">Text to check</label>
+<textarea id="in" placeholder="Paste a paragraph here…"></textarea>
+<div class="row">
+ <button class="main" id="go">Check the facts</button>
+ <button class="ghost" id="ex">Try an example</button>
+ <button class="ghost" id="tst">Run accuracy test</button>
+</div>
+
+<div class="legend">
+ <span class="pill p-g">● Verified</span><span class="pill p-o">● Doubtful</span><span class="pill p-r">● Incorrect</span>
+</div>
+
+<div id="out" aria-live="polite"></div>
+
+<p class="note">Veri uses AI and its own knowledge, not live web search. It can be wrong, so always confirm important facts with a trusted source. Veri never gives medical, legal or financial advice.</p>
+</div>
+
+<script>
+function robot(mood){
+ var eye = mood==="think" ? '<circle cx="38" cy="50" r="5" fill="#12305a"/><circle cx="62" cy="50" r="5" fill="#12305a"/>' : '<circle cx="38" cy="50" r="6" fill="#12305a"/><circle cx="62" cy="50" r="6" fill="#12305a"/><circle cx="40" cy="48" r="2" fill="#fff"/><circle cx="64" cy="48" r="2" fill="#fff"/>';
+ var mouth = mood==="alert" ? '<path d="M40 72 Q50 66 60 72" stroke="#12305a" stroke-width="4" fill="none" stroke-linecap="round"/>' : '<path d="M40 68 Q50 78 60 68" stroke="#12305a" stroke-width="4" fill="none" stroke-linecap="round"/>';
+ return '<line x1="50" y1="14" x2="50" y2="26" stroke="#2f7bff" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="12" r="6" fill="#2f7bff"/>'+
+ '<rect x="12" y="46" width="8" height="18" rx="4" fill="#2f7bff"/><rect x="80" y="46" width="8" height="18" rx="4" fill="#2f7bff"/>'+
+ '<rect x="20" y="26" width="60" height="58" rx="24" fill="#fff" stroke="#2f7bff" stroke-width="5"/>'+
+ '<rect x="28" y="38" width="44" height="34" rx="16" fill="#dbe8ff"/>'+eye+mouth+
+ '<circle cx="30" cy="62" r="4" fill="#ffb3b3" opacity=".7"/><circle cx="70" cy="62" r="4" fill="#ffb3b3" opacity=".7"/>';
+}
+document.getElementById("logo").innerHTML = robot("ok");
+var mascot = document.getElementById("mascot"); mascot.innerHTML = robot("ok");
+var say = document.getElementById("say"), out = document.getElementById("out"), go = document.getElementById("go"), inp = document.getElementById("in");
+var LAB = {true:["Verified","p-g"],doubtful:["Doubtful","p-o"],false:["Incorrect","p-r"]};
+
+document.getElementById("ex").onclick = function(){
+ inp.value = "The Great Wall of China is visible from space with the naked eye. Water boils at 100 degrees Celsius at sea level. Humans only use 10 percent of their brains. The Eiffel Tower is located in Paris.";
+};
+
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+function render(list){
+ var c = {true:0,doubtful:0,false:0};
+ list.forEach(function(x){ if(c[x.verdict]!==undefined) c[x.verdict]++; });
+ var h = '<div class="score"><div class="p-g">'+c.true+'<small>Verified</small></div><div class="p-o">'+c.doubtful+'<small>Doubtful</small></div><div class="p-r">'+c.false+'<small>Incorrect</small></div></div>';
+ list.forEach(function(x){
+  var v = LAB[x.verdict] ? x.verdict : "doubtful";
+  h += '<div class="claim '+v+'"><span class="tag '+LAB[v][1]+'">'+LAB[v][0]+'</span><div class="t">'+esc(x.claim)+'</div><div class="why">'+esc(x.reason)+'</div></div>';
+ });
+ out.innerHTML = h;
+ var bad = c.false + c.doubtful;
+ mascot.innerHTML = robot(bad ? "alert" : "ok");
+ say.innerHTML = bad ? 'I found <b>'+bad+'</b> claim'+(bad>1?'s':'')+' worth a second look.' : 'All clear! Every claim looks <b>verified</b>.';
+}
+
+async function oldGo(){
+ var text = inp.value.trim();
+ if(!text){ say.textContent = "Please paste some text first."; return; }
+ out.innerHTML = ""; go.disabled = true;
+ mascot.innerHTML = robot("think"); mascot.classList.add("bob"); say.textContent = "Thinking… checking each claim.";
+ try{
+  var sample = await claude.use("sample");
+  if(!sample) throw {code:"unavailable"};
+  var res = await sample.json(
+   "You are a careful fact-checker. Split the TEXT into separate factual claims. For each, give a verdict: \"true\" (well established), \"doubtful\" (uncertain, disputed or missing context) or \"false\" (incorrect). Be honest about uncertainty and never invent sources. Keep each reason under 25 words. Ignore opinions. Max 12 claims. Reply ONLY with JSON: {\"claims\":[{\"claim\":\"...\",\"verdict\":\"true|doubtful|false\",\"reason\":\"...\"}]}\n\nTEXT:\n"+text
+  );
+  var list = (res && res.claims) || [];
+  if(!list.length){ say.textContent = "I couldn’t find factual claims in that text."; }
+  else render(list);
+ }catch(e){
+  mascot.innerHTML = robot("alert");
+  say.textContent = "Oops, I couldn’t finish.";
+  out.innerHTML = '<div class="err">'+(e && e.code==="not_granted" ? "Permission was declined. Tap the button again and allow it." : e && e.code==="rate_limited" ? "Too many requests. Please wait a moment." : "Veri needs to be opened inside Claude to think. Please try again.")+'</div>';
+ }
+ mascot.classList.remove("bob"); go.disabled = false;
+};
+var smp=null;
+async function ask(p){if(!smp)smp=await claude.use("sample");if(!smp)throw {code:"unavailable"};return smp.json(p)}
+var NM=function(s){return String(s).toLowerCase().replace(/[^a-z0-9 ]/g,"").trim()};
+async function pipeline(text){
+ var a=await ask("You are a careful fact-checker. Split the TEXT into separate factual claims. Copy each claim EXACTLY as written in the text. Verdict: true (well established), doubtful (uncertain, disputed or missing context) or false (incorrect). Never invent sources. Reason under 25 words. Ignore opinions. Max 14 claims. Reply ONLY with JSON: {\"claims\":[{\"claim\":\"...\",\"verdict\":\"true|doubtful|false\",\"reason\":\"...\"}]}\n\nTEXT:\n"+text);
+ var cl=(a&&a.claims)||[];if(!cl.length)return [];
+ var b=await ask("You are a skeptical independent reviewer. Judge each numbered claim on its own as true, doubtful or false. Be strict: if a claim is a common myth or lacks context, do not say true. Reply ONLY with JSON in the same order: {\"verdicts\":[{\"verdict\":\"true|doubtful|false\"}]}\n\nCLAIMS:\n"+cl.map(function(c,i){return (i+1)+". "+c.claim}).join("\n"));
+ var bv=(b&&b.verdicts)||[];
+ return cl.map(function(c,i){
+  var v1=c.verdict,v2=bv[i]&&bv[i].verdict||v1,v=v1,n="";
+  if(v1!==v2){v="doubtful";n=" The two checks disagreed, so Veri stays cautious."}
+  return {claim:c.claim,verdict:LAB[v]?v:"doubtful",reason:(c.reason||"")+n,agree:v1===v2};
+ });
+}
+function annotate(text,list){
+ var low=text.toLowerCase(),r=[];
+ list.forEach(function(x){var i=low.indexOf(String(x.claim).toLowerCase());if(i>=0)r.push([i,i+x.claim.length,x.verdict])});
+ r.sort(function(a,b){return a[0]-b[0]});
+ var h="",p=0;
+ r.forEach(function(m){if(m[0]<p)return;h+=esc(text.slice(p,m[0]))+'<span class="mk m-'+m[2]+'">'+esc(text.slice(m[0],m[1]))+'</span>';p=m[1]});
+ return h+esc(text.slice(p));
+}
+function show(text,list){
+ var c={true:0,doubtful:0,false:0};list.forEach(function(x){c[x.verdict]++});
+ var n=list.length,pct=Math.round((c.true+0.5*c.doubtful)/n*100);
+ var h='<div class="box"><b>Trust score: '+pct+'%</b><div class="bar" role="img" aria-label="Trust score '+pct+' percent"><i style="width:'+pct+'%"></i></div><small style="color:var(--mut)">Each claim is checked twice. If the two checks disagree, it turns orange.</small></div>';
+ h+='<div class="score"><div class="p-g">'+c.true+'<small>Verified</small></div><div class="p-o">'+c.doubtful+'<small>Doubtful</small></div><div class="p-r">'+c.false+'<small>Incorrect</small></div></div>';
+ if(text)h+='<div class="ann">'+annotate(text,list)+'</div>';
+ list.forEach(function(x){
+  h+='<div class="claim '+x.verdict+'"><span class="tag '+LAB[x.verdict][1]+'">'+LAB[x.verdict][0]+'</span><div class="t">'+esc(x.claim)+'</div><div class="why">'+esc(x.reason)+'</div><a class="ver" target="_blank" rel="noopener" href="https://www.google.com/search?q='+encodeURIComponent(x.claim)+'">Verify this yourself ↗</a></div>';
+ });
+ out.innerHTML=h;
+ var bad=c.false+c.doubtful;
+ mascot.innerHTML=robot(bad?"alert":"ok");
+ say.innerHTML=bad?'I found <b>'+bad+'</b> claim'+(bad>1?'s':'')+' worth a second look.':'All clear! Every claim looks <b>verified</b>.';
+}
+function fail(e){
+ mascot.innerHTML=robot("alert");say.textContent="Oops, I couldn’t finish.";
+ out.innerHTML='<div class="err">'+(e&&e.code==="not_granted"?"Permission was declined. Tap the button again and allow it.":e&&e.code==="rate_limited"?"Too many requests. Please wait a moment.":"Veri needs to be opened inside Claude to think. Please try again.")+'</div>';
+}
+function busy(m){out.innerHTML="";go.disabled=true;document.getElementById("tst").disabled=true;mascot.innerHTML=robot("think");mascot.classList.add("bob");say.textContent=m}
+function idle(){mascot.classList.remove("bob");go.disabled=false;document.getElementById("tst").disabled=false}
+go.onclick=async function(){
+ var t=inp.value.trim();if(!t){say.textContent="Please paste some text first.";return}
+ busy("Thinking… checking each claim twice.");
+ try{var l=await pipeline(t);if(!l.length)say.textContent="I couldn’t find factual claims in that text.";else show(t,l)}catch(e){fail(e)}
+ idle();
+};
+var TESTS=[["Water boils at 100 degrees Celsius at sea level.","true"],["The Eiffel Tower is in Paris.","true"],["Mount Everest is the highest mountain above sea level.","true"],["Light travels faster than sound.","true"],["The human heart has four chambers.","true"],["The Pacific is the largest ocean on Earth.","true"],["The Great Wall of China is visible from space with the naked eye.","false"],["Humans use only 10 percent of their brains.","false"],["Lightning never strikes the same place twice.","false"],["Goldfish have a three-second memory.","false"],["Sydney is the capital of Australia.","false"],["The Sun orbits the Earth.","false"]];
+document.getElementById("tst").onclick=async function(){
+ busy("Running my built-in test: 12 known facts and myths…");
+ try{
+  var txt=TESTS.map(function(t){return t[0]}).join(" ");
+  var l=await pipeline(txt,true),ok=0,miss=0,rows="";
+  TESTS.forEach(function(t){
+   var k=NM(t[0]).slice(0,22),f=l.filter(function(x){return NM(x.claim).indexOf(k)>=0})[0];
+   var good=f&&f.verdict===t[1];if(!f)miss++;if(good)ok++;
+   rows+='<div class="claim '+(good?"true":"false")+'"><span class="tag '+(good?"p-g":"p-r")+'">'+(good?"Correct":"Missed")+'</span><div class="t">'+esc(t[0])+'</div><div class="why">Truth: '+t[1]+' · Veri said: '+(f?f.verdict:"not found")+'</div></div>';
+  });
+  out.innerHTML='<div class="box"><b>Accuracy test: '+ok+' / 12 ('+Math.round(ok/12*100)+'%)</b><div class="bar"><i style="width:'+Math.round(ok/12*100)+'%"></i></div><small style="color:var(--mut)">AI-only test (reference base switched off) with well-known facts and myths. Real-world accuracy on hard or recent topics is lower, so use the Verify links.</small></div>'+rows;
+  mascot.innerHTML=robot("ok");say.innerHTML='Test done! I scored <b>'+ok+' out of 12</b>.';
+ }catch(e){fail(e)}
+ idle();
+};
+var KB=[[1,"Water boils at 100 °C at standard sea-level pressure.","NIST"],[2,"The speed of light in a vacuum is 299,792,458 metres per second.","BIPM (SI definition)"],[3,"The Great Wall of China is not visible to the naked eye from the Moon and is very hard to see from low Earth orbit.","NASA"],[4,"Humans use virtually all of their brain; the \"10 percent\" claim is a myth.","Scientific American"],[5,"The capital of Australia is Canberra.","Australian Government"],[6,"Lightning can and often does strike the same place more than once; the Empire State Building is hit about 20 to 25 times a year.","NOAA"],[7,"The Earth orbits the Sun; the Sun does not orbit the Earth.","NASA"],[8,"The human heart has four chambers.","NHLBI"],[9,"Mount Everest is the highest mountain above sea level, about 8,849 metres.","National Geographic"],[10,"The Pacific is the largest and deepest ocean on Earth.","NOAA"],[11,"Vaccines do not cause autism.","CDC"],[12,"An adult human has 206 bones.","NIH"],[13,"The Earth is about 4.5 billion years old.","USGS"],[14,"Antibiotics do not work against viruses.","CDC"],[15,"Apollo 11 landed on the Moon on 20 July 1969.","NASA"],[16,"Sound cannot travel through a vacuum.","NASA"],[17,"Any two humans share about 99.9 percent of their DNA.","NIH (NHGRI)"],[18,"Jupiter is the largest planet in the Solar System.","NASA"],[19,"Pluto was reclassified as a dwarf planet in 2006.","IAU"],[20,"Humans have five basic senses is a simplification; the body has many more senses, such as balance and temperature.","NIH"]];
+function ev(s){var i=0;s=s.replace(/\s+/g,"");function n(){if(s[i]==="("){i++;var v=e();i++;return v}var m=/^-?\d+(\.\d+)?/.exec(s.slice(i));if(!m)throw 0;i+=m[0].length;return +m[0]}function p(){var v=n();while(s[i]==="^"){i++;v=Math.pow(v,n())}return v}function t(){var v=p();while(s[i]==="*"||s[i]==="/"){var o=s[i++],r=p();v=o==="*"?v*r:v/r}return v}function e(){var v=t();while(s[i]==="+"||s[i]==="-"){var o=s[i++],r=t();v=o==="+"?v+r:v-r}return v}var r=e();if(i!==s.length)throw 0;return r}
+var DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+async function pipeline(text,noKB){
+ var kbTxt=noKB?"":"\n\nREFERENCE FACTS (id: fact):\n"+KB.map(function(k){return k[0]+": "+k[1]}).join("\n");
+ var a=await ask("You are a careful fact-checker. Split the TEXT into separate factual claims. Copy each claim EXACTLY as written. Verdict: true (well established), doubtful (uncertain, disputed or missing context) or false (incorrect). Never invent sources. Reason under 25 words. Ignore opinions. Max 14 claims. Extra fields: kb = {id, relation} only if a REFERENCE FACT directly supports or contradicts the claim (relation 'supports' or 'contradicts'), else null. calc = {expr, claimed} only if the claim states an arithmetic result (expr uses digits and + - * / ^ ( ) only, claimed is the number stated), else null. date = {date:'YYYY-MM-DD', weekday} only if the claim says what weekday a specific date fell on, else null. Reply ONLY with JSON: {\"claims\":[{\"claim\":\"\",\"verdict\":\"true|doubtful|false\",\"reason\":\"\",\"kb\":null,\"calc\":null,\"date\":null}]}\n\nTEXT:\n"+text+kbTxt);
+ var cl=(a&&a.claims)||[];if(!cl.length)return [];
+ var b=await ask("You are a skeptical independent reviewer. Judge each numbered claim on its own as true, doubtful or false. Be strict: common myths or claims lacking context are not true. Reply ONLY with JSON in the same order: {\"verdicts\":[{\"verdict\":\"true|doubtful|false\"}]}\n\nCLAIMS:\n"+cl.map(function(c,i){return (i+1)+". "+c.claim}).join("\n"));
+ var bv=(b&&b.verdicts)||[];
+ return cl.map(function(c,i){
+  var v1=c.verdict,v2=bv[i]&&bv[i].verdict||v1,v=v1,r=c.reason||"",bd=[],ai=true;
+  if(v1!==v2){v="doubtful";r+=" The two checks disagreed, so Veri stays cautious."}
+  var k=!noKB&&c.kb&&KB.filter(function(x){return x[0]===c.kb.id})[0];
+  if(k&&(c.kb.relation==="supports"||c.kb.relation==="contradicts")){v=c.kb.relation==="supports"?"true":"false";bd.push("Reference base · "+k[2]);r=(v==="true"?"Matches: ":"Contradicts: ")+k[1];ai=false}
+  if(c.calc&&c.calc.expr&&/^[0-9+\-*\/^().\s]+$/.test(c.calc.expr)){try{var x=ev(c.calc.expr),ok=Math.abs(x-Number(c.calc.claimed))<1e-6*Math.max(1,Math.abs(x));v=ok?"true":"false";bd.push("Calculator "+(ok?"✓":"✗"));r="Calculator: "+c.calc.expr+" = "+x+(ok?" (matches)":" (claim says "+c.calc.claimed+")");ai=false}catch(e){}}
+  if(c.date&&/^\d{4}-\d{2}-\d{2}$/.test(c.date.date||"")){var w=DAYS[new Date(c.date.date+"T00:00:00Z").getUTCDay()],ok2=w.toLowerCase()===String(c.date.weekday).toLowerCase();v=ok2?"true":"false";bd.push("Calendar "+(ok2?"✓":"✗"));r="Calendar: "+c.date.date+" was a "+w;ai=false}
+  if(ai)bd.push("AI judgement only · no source");
+  return {claim:c.claim,verdict:LAB[v]?v:"doubtful",reason:r,bd:bd};
+ });
+}
+var lastReport="";
+function show(text,list){
+ var c={true:0,doubtful:0,false:0};list.forEach(function(x){c[x.verdict]++});
+ var n=list.length,pct=Math.round((c.true+0.5*c.doubtful)/n*100);
+ var h='<div class="box"><b>Trust score: '+pct+'%</b><div class="bar" role="img" aria-label="Trust score '+pct+' percent"><i style="width:'+pct+'%"></i></div><small style="color:var(--mut)">Layers: reference base, code tools (calculator, calendar), and two independent AI checks.</small></div>';
+ h+='<div class="score"><div class="p-g">'+c.true+'<small>Verified</small></div><div class="p-o">'+c.doubtful+'<small>Doubtful</small></div><div class="p-r">'+c.false+'<small>Incorrect</small></div></div>';
+ if(text)h+='<div class="ann">'+annotate(text,list)+'</div>';
+ lastReport="VERI FACT-CHECK REPORT\nTrust score: "+pct+"%\n\n";
+ list.forEach(function(x){
+  h+='<div class="claim '+x.verdict+'"><span class="tag '+LAB[x.verdict][1]+'">'+LAB[x.verdict][0]+'</span><div style="margin-bottom:4px">'+x.bd.map(function(b){return '<span class="bd">'+esc(b)+'</span>'}).join("")+'</div><div class="t">'+esc(x.claim)+'</div><div class="why">'+esc(x.reason)+'</div><a class="ver" target="_blank" rel="noopener" href="https://www.google.com/search?q='+encodeURIComponent(x.claim)+'">Verify this yourself ↗</a></div>';
+  lastReport+="["+LAB[x.verdict][0].toUpperCase()+"] "+x.claim+"\n  "+x.bd.join(", ")+"\n  "+x.reason+"\n\n";
+ });
+ lastReport+="Veri uses AI and can be wrong. Confirm important facts with trusted sources.";
+ h+='<div class="row"><button class="ghost" id="sv">Save report</button></div>';
+ out.innerHTML=h;
+ document.getElementById("sv").onclick=async function(){try{var d=await claude.use("downloads");if(!d){say.textContent="Saving isn’t available here.";return}await d.save({filename:"veri-report.txt",data:new Blob([lastReport],{type:"text/plain"})})}catch(e){}};
+ var bad=c.false+c.doubtful;
+ mascot.innerHTML=robot(bad?"alert":"ok");
+ say.innerHTML=bad?'I found <b>'+bad+'</b> claim'+(bad>1?'s':'')+' worth a second look.':'All clear! Every claim looks <b>verified</b>.';
+}
+</script>
+</body>
+</html>
