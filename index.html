@@ -239,6 +239,15 @@ function show(text,list){
  mascot.innerHTML=robot(bad?"alert":"ok");
  say.innerHTML=bad?'I found <b>'+bad+'</b> claim'+(bad>1?'s':'')+' worth a second look.':'All clear! Every claim looks <b>verified</b>.';
 }
+var EX="The Great Wall of China is visible from space with the naked eye. Water boils at 100 degrees Celsius at sea level. Humans only use 10 percent of their brains. The Eiffel Tower is located in Paris.";
+var CANNED=[{claim:"The Great Wall of China is visible from space with the naked eye.",verdict:"false",reason:"Contradicts: The Great Wall of China is not visible to the naked eye from the Moon and is very hard to see from low Earth orbit.",bd:["Reference base · NASA"]},{claim:"Water boils at 100 degrees Celsius at sea level.",verdict:"true",reason:"Matches: Water boils at 100 °C at standard sea-level pressure.",bd:["Reference base · NIST"]},{claim:"Humans only use 10 percent of their brains.",verdict:"false",reason:"Contradicts: Humans use virtually all of their brain; the 10 percent claim is a myth.",bd:["Reference base · Scientific American"]},{claim:"The Eiffel Tower is located in Paris.",verdict:"true",reason:"Well established. No reference-base entry, so this is the AI’s judgement.",bd:["AI judgement only · no source"]}];
+document.getElementById("ex").onclick=function(){inp.value=EX};
+function fail(e){
+ if(e&&(e.code==="not_granted"||e.code==="rate_limited")){mascot.innerHTML=robot("alert");say.textContent="Oops, I couldn’t finish.";out.innerHTML='<div class="err">'+(e.code==="not_granted"?"Permission was declined. Tap the button again and allow it.":"Too many requests. Please wait a moment.")+'</div>';return}
+ var t=inp.value.trim();
+ if(NM(t)===NM(EX)){show(t,CANNED);out.innerHTML='<div class="box"><b>Demo mode</b><br><small style="color:var(--mut)">Recorded sample result. The live AI check runs only when this app is opened inside Claude.</small></div>'+out.innerHTML;say.innerHTML='Here is a <b>recorded demo</b> of how I check claims.'}
+ else{mascot.innerHTML=robot("ok");say.innerHTML='Live AI runs only inside Claude. Tap <b>Try an example</b>, then <b>Check the facts</b>, to see a recorded demo.'}
+}
 </script>
 </body>
 </html>
